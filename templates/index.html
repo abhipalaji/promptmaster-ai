@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto py-16 px-6">
+
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Engineered for Precision</h1>
+        <p class="text-gray-500">Select context and generate better prompts.</p>
+    </div>
+
+    <div class="bg-white rounded-3xl p-8 card-shadow border border-gray-100">
+
+        <div class="grid md:grid-cols-2 gap-8">
+
+            <!-- INPUT -->
+            <div class="space-y-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <select id="category" class="p-3 bg-gray-50 border rounded-xl">
+                        <option value="general">General</option>
+                        <option value="blog">Blog</option>
+                        <option value="ads">Ads</option>
+                        <option value="code">Code</option>
+                    </select>
+
+                    <select id="tone" class="p-3 bg-gray-50 border rounded-xl">
+                        <option value="professional">Professional</option>
+                        <option value="creative">Creative</option>
+                        <option value="friendly">Friendly</option>
+                    </select>
+
+                </div>
+
+                <textarea id="input" class="w-full h-48 p-4 bg-gray-50 border rounded-xl"
+                    placeholder="Enter your prompt..."></textarea>
+
+                <button onclick="enhance()" class="w-full bg-blue-600 text-white py-4 rounded-xl">
+                    Generate Prompt
+                </button>
+
+            </div>
+
+            <!-- OUTPUT -->
+            <div class="relative bg-slate-900 text-white rounded-xl p-6 min-h-[300px]">
+
+                <div id="loading" class="hidden absolute inset-0 flex items-center justify-center bg-black/60">
+                    Loading...
+                </div>
+
+                <div id="output">Result will appear here...</div>
+
+                <button onclick="copyText()" class="absolute bottom-3 right-3 text-sm bg-gray-700 px-2 py-1 rounded">
+                    Copy
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="copyMsg" class="hidden text-green-600 mt-4 text-center">
+        Copied!
+    </div>
+
+</div>
+
+<script>
+async function enhance() {
+    const prompt = document.getElementById("input").value;
+    const tone = document.getElementById("tone").value;
+    const category = document.getElementById("category").value;
+
+    const output = document.getElementById("output");
+    const loading = document.getElementById("loading");
+
+    if (!prompt.trim()) {
+        output.innerText = "⚠️ Please enter a prompt.";
+        return;
+    }
+
+    loading.classList.remove("hidden");
+
+    try {
+        const res = await fetch("/enhance", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({prompt, tone, category})
+        });
+
+        const data = await res.json();
+
+        output.innerText = data.result || "Error occurred";
+
+    } catch {
+        output.innerText = "Request failed.";
+    }
+
+    loading.classList.add("hidden");
+}
+
+function copyText() {
+    const text = document.getElementById("output").innerText;
+    if (!text || text.includes("appear")) return;
+
+    navigator.clipboard.writeText(text);
+
+    const msg = document.getElementById("copyMsg");
+    msg.classList.remove("hidden");
+
+    setTimeout(() => msg.classList.add("hidden"), 2000);
+}
+</script>
+
+{% endblock %}
